@@ -15,25 +15,21 @@ namespace WinTail
         public const string ExitCommand = "exit";
         public const string StartCommand = "start";
 
-        private readonly IActorRef _consoleWriterActor;
+        private readonly IActorRef validationActor;
 
-        public ConsoleReaderActor(IActorRef consoleWriterActor)
+        public ConsoleReaderActor(IActorRef validationActor)
         {
-            if (consoleWriterActor == null)
-                throw new ArgumentNullException(nameof(consoleWriterActor));
+            if (validationActor == null)
+                throw new ArgumentNullException(nameof(validationActor));
 
-            _consoleWriterActor = consoleWriterActor;
+            this.validationActor = validationActor;
         }
 
         protected override void OnReceive(object message)
         {
-            if (StartCommand.Equals(message))
+            if (message.Equals(StartCommand))
             {
                 DoPrintInstructions();
-            }
-            else if (message is InputError)
-            {
-                _consoleWriterActor.Tell(message as InputError);
             }
 
             GetAndValidateInput();
@@ -50,38 +46,18 @@ namespace WinTail
         {
             var message = Console.ReadLine();
 
-            if (string.IsNullOrEmpty(message))
+            if (!string.IsNullOrEmpty(message) &&
+                String.Equals(message, ExitCommand, StringComparison.OrdinalIgnoreCase))
             {
-                // signal that the user needs to supply an input, as previously
-                // received input was blank
-                Self.Tell(new NullInputError("No input received."));
-            }
-            else if (String.Equals(message, ExitCommand, StringComparison.OrdinalIgnoreCase))
-            {
-                // shut down the entire actor system (allows the process to exit)
+                // if user typed ExitCommand, shut down the entire actor
+                // system (allows the process to exit)
                 Context.System.Terminate();
+                return;
             }
-            else
-            {
-                var valid = IsValid(message);
-                if (valid)
-                {
-                    _consoleWriterActor.Tell(new InputSuccess("Thank you! Message was valid."));
 
-                    // continue reading messages from console
-                    Self.Tell(new ContinueProcessing());
-                }
-                else
-                {
-                    Self.Tell(new ValidationError("Invalid: input had odd number of characters."));
-                }
-            }
-        }
-
-        private static bool IsValid(string message)
-        {
-            var valid = message.Length % 2 == 0;
-            return valid;
+            // otherwise, just hand message off to validation actor
+            // (by telling its actor ref)
+            validationActor.Tell(message);
         }
     }
 }
