@@ -1,4 +1,4 @@
-﻿namespace WinTail.Messages.Neutral
+﻿namespace WinTail.Actors.Messages.Neutral
 {
     public sealed class ContinueProcessing
     {

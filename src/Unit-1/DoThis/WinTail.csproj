@@ -50,16 +50,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConsoleReaderActor.cs" />
-    <Compile Include="ConsoleWriterActor.cs" />
-    <Compile Include="Messages\Error\InputError.cs" />
-    <Compile Include="Messages\Error\NullInputError.cs" />
-    <Compile Include="Messages\Error\ValidationError.cs" />
-    <Compile Include="Messages\Neutral\ContinueProcessing.cs" />
-    <Compile Include="Messages\Success\InputSuccess.cs" />
+    <Compile Include="Actors\ConsoleReaderActor.cs" />
+    <Compile Include="Actors\ConsoleWriterActor.cs" />
+    <Compile Include="Actors\FileValidatorActor.cs" />
+    <Compile Include="Actors\Messages\Error\InputError.cs" />
+    <Compile Include="Actors\Messages\Error\NullInputError.cs" />
+    <Compile Include="Actors\Messages\Error\ValidationError.cs" />
+    <Compile Include="Actors\Messages\Neutral\ContinueProcessing.cs" />
+    <Compile Include="Actors\Messages\Success\InputSuccess.cs" />
+    <Compile Include="Actors\TailCoordinator\Messages\StartTail.cs" />
+    <Compile Include="Actors\TailCoordinator\Messages\StopTail.cs" />
+    <Compile Include="Actors\TailCoordinator\TailCoordinatorActor.cs" />
+    <Compile Include="Actors\Tail\Messages\FileError.cs" />
+    <Compile Include="Actors\Tail\Messages\FileWrite.cs" />
+    <Compile Include="Actors\Tail\Messages\InitialRead.cs" />
+    <Compile Include="Actors\Tail\TailActor.cs" />
+    <Compile Include="FileObserver.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ValidationActor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -1,4 +1,4 @@
-﻿namespace WinTail.Messages.Success
+﻿namespace WinTail.Actors.Messages.Success
 {
     public class InputSuccess
     {

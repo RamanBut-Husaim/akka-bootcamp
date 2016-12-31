@@ -1,9 +1,9 @@
 ﻿using System;
 using Akka.Actor;
-using WinTail.Messages.Error;
-using WinTail.Messages.Success;
+using WinTail.Actors.Messages.Error;
+using WinTail.Actors.Messages.Success;
 
-namespace WinTail
+namespace WinTail.Actors
 {
     /// <summary>
     /// Actor responsible for serializing message writes to the console.
