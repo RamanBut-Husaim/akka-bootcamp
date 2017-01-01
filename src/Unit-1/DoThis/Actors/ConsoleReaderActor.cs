@@ -12,16 +12,6 @@ namespace WinTail.Actors
         public const string ExitCommand = "exit";
         public const string StartCommand = "start";
 
-        private readonly IActorRef validationActor;
-
-        public ConsoleReaderActor(IActorRef validationActor)
-        {
-            if (validationActor == null)
-                throw new ArgumentNullException(nameof(validationActor));
-
-            this.validationActor = validationActor;
-        }
-
         protected override void OnReceive(object message)
         {
             if (message.Equals(StartCommand))
@@ -52,7 +42,7 @@ namespace WinTail.Actors
 
             // otherwise, just hand message off to validation actor
             // (by telling its actor ref)
-            validationActor.Tell(message);
+            Context.ActorSelection("akka://MyActorSystem/user/validationActor").Tell(message);
         }
     }
 }
