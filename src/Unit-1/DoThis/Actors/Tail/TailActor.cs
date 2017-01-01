@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using Akka.Actor;
 using WinTail.Actors.Tail.Messages;
@@ -9,15 +10,22 @@ namespace WinTail.Actors.Tail
     {
         private readonly string filePath;
         private readonly IActorRef reporterActor;
-        private readonly FileObserver observer;
-        private readonly Stream fileStream;
-        private readonly StreamReader fileStreamReader;
+        
+        private FileObserver observer;
+        private Stream fileStream;
+        private StreamReader fileStreamReader;
 
         public TailActor(IActorRef reporterActor, string filePath)
         {
+            if (reporterActor == null)
+                throw new ArgumentNullException(nameof(reporterActor));
+
             this.reporterActor = reporterActor;
             this.filePath = filePath;
+        }
 
+        protected override void PreStart()
+        {
             // start watching file for changes
             observer = new FileObserver(Self, Path.GetFullPath(this.filePath));
             observer.Start();
@@ -31,6 +39,8 @@ namespace WinTail.Actors.Tail
             // read the initial contents of the file and send it to console as first msg
             var text = fileStreamReader.ReadToEnd();
             Self.Tell(new InitialRead(this.filePath, text));
+
+            base.PreStart();
         }
 
         protected override void OnReceive(object message)
@@ -57,6 +67,14 @@ namespace WinTail.Actors.Tail
                 var ir = message as InitialRead;
                 reporterActor.Tell(ir.Text);
             }
+        }
+
+        protected override void PostStop()
+        {
+            observer.Dispose();
+            fileStreamReader.Dispose();
+
+            base.PostStop();
         }
     }
 }
