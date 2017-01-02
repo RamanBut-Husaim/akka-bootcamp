@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+
 using Akka.Actor;
 
 using ChartApp.Actors.Messages;
 
 namespace ChartApp.Actors
 {
-    public sealed class ChartingActor : ReceiveActor
+    public sealed class ChartingActor : ReceiveActor, IWithUnboundedStash
     {
         /// <summary>
         /// Maximum number of points we will allow in a series
@@ -39,6 +40,8 @@ namespace ChartApp.Actors
             this.Charting();
         }
 
+        public IStash Stash { get; set; }
+
         #region Individual Message Type Handlers
 
         private void Charting()
@@ -58,11 +61,17 @@ namespace ChartApp.Actors
 
         private void Paused()
         {
+            this.Receive<AddSeries>(addSeries => this.Stash.Stash());
+            this.Receive<RemoveSeries>(removeSeries => this.Stash.Stash());
             this.Receive<Metric>(metric => this.HandleMetricsPaused(metric));
             this.Receive<TogglePause>(pause =>
             {
                 this.SetPauseButtonText(false);
                 this.UnbecomeStacked();
+
+                // ChartingActor is leaving the Paused state, put messages back
+                // into mailbox for processing under new behavior
+                this.Stash.UnstashAll();
             });
         }
 
