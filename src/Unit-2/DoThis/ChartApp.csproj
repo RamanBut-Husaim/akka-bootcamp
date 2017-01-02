@@ -66,6 +66,7 @@
     <Compile Include="Actors\Messages\Metric.cs" />
     <Compile Include="Actors\Messages\RemoveSeries.cs" />
     <Compile Include="Actors\Messages\SubscribeCounter.cs" />
+    <Compile Include="Actors\Messages\TogglePause.cs" />
     <Compile Include="Actors\Messages\UnsubscribeCounter.cs" />
     <Compile Include="Actors\PerformanceCounterActor .cs" />
     <Compile Include="Actors\PerformanceCounterCoordinator\Messages\Unwatch.cs" />

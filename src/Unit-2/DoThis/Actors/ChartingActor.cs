@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using Akka.Actor;
 
@@ -21,24 +22,67 @@ namespace ChartApp.Actors
         private int xPosCounter;
 
         private readonly Chart chart;
+        private readonly Button pauseButton;
         private Dictionary<string, Series> seriesIndex;
 
-        public ChartingActor(Chart chart) : this(chart, new Dictionary<string, Series>())
+        public ChartingActor(Chart chart, Button pauseButton) :
+            this(chart, new Dictionary<string, Series>(), pauseButton)
         {
         }
 
-        public ChartingActor(Chart chart, Dictionary<string, Series> seriesIndex)
+        public ChartingActor(Chart chart, Dictionary<string, Series> seriesIndex,
+            Button pauseButton)
         {
             this.chart = chart;
             this.seriesIndex = seriesIndex;
+            this.pauseButton = pauseButton;
+            this.Charting();
+        }
 
+        #region Individual Message Type Handlers
+
+        private void Charting()
+        {
             this.Receive<InitializeChart>(ic => this.HandleInitialize(ic));
             this.Receive<AddSeries>(addSeries => this.HandleAddSeries(addSeries));
             this.Receive<RemoveSeries>(removeSeries => this.HandleRemoveSeries(removeSeries));
             this.Receive<Metric>(metric => this.HandleMetrics(metric));
+
+            //new receive handler for the TogglePause message type
+            this.Receive<TogglePause>(pause =>
+            {
+                this.SetPauseButtonText(true);
+                this.BecomeStacked(Paused);
+            });
         }
 
-        #region Individual Message Type Handlers
+        private void Paused()
+        {
+            this.Receive<Metric>(metric => this.HandleMetricsPaused(metric));
+            this.Receive<TogglePause>(pause =>
+            {
+                this.SetPauseButtonText(false);
+                this.UnbecomeStacked();
+            });
+        }
+
+        private void SetPauseButtonText(bool paused)
+        {
+            this.pauseButton.Text = $"{(!paused ? "PAUSE" : "RESUME")}";
+        }
+
+        private void HandleMetricsPaused(Metric metric)
+        {
+            if (!string.IsNullOrEmpty(metric.Series) && this.seriesIndex.ContainsKey(metric.Series))
+            {
+                var series = this.seriesIndex[metric.Series];
+                // set the Y value to zero when we're paused
+                series.Points.AddXY(this.xPosCounter++, 0.0d);
+                while (series.Points.Count > MaxPoints)
+                    series.Points.RemoveAt(0);
+                this.SetChartBoundaries();
+            }
+        }
 
         private void HandleInitialize(InitializeChart ic)
         {
